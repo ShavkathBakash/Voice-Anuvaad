@@ -3,8 +3,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Voice Anuvaad | Cyber-Anime Translator</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0a16">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,6 +25,7 @@
             color: white;
             overflow-x: hidden;
             margin: 0;
+            -webkit-tap-highlight-color: transparent;
         }
         
         /* The Ethereal Nexus Background */
@@ -118,7 +123,6 @@
 <body>
     <div class="nexus-bg" id="nexus-bg">
         <div class="aurora"></div>
-        <!-- Digital petals injected by JS -->
     </div>
     <div id="root"></div>
     <script>
@@ -131,6 +135,13 @@
             petal.style.animationDelay = (Math.random() * 10) + 's';
             petal.style.opacity = Math.random() * 0.4;
             bg.appendChild(petal);
+        }
+
+        // Register a simple service worker for PWA support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed', err));
+            });
         }
     </script>
 </body>
