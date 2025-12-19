@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Anuvaad | Cyber-Anime Translator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --anime-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --neon-cyan: #06b6d4;
+            --neon-violet: #8b5cf6;
+        }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #0a0a16;
+            color: white;
+            overflow-x: hidden;
+            margin: 0;
+        }
+        
+        /* The Ethereal Nexus Background */
+        .nexus-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #0a0a16 100%);
+        }
+        .aurora {
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            filter: blur(80px);
+            animation: auroraMove 20s ease-in-out infinite alternate;
+        }
+        @keyframes auroraMove {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(10%, 10%) rotate(5deg); }
+        }
+        
+        /* Digital Sakura Particles */
+        .digital-petal {
+            position: absolute;
+            background: linear-gradient(to bottom, var(--neon-cyan), transparent);
+            width: 2px;
+            height: 40px;
+            opacity: 0.3;
+            animation: petalFall var(--duration) linear infinite;
+        }
+        @keyframes petalFall {
+            from { transform: translateY(-100px) rotate(0deg); }
+            to { transform: translateY(110vh) rotate(360deg); }
+        }
+
+        /* Portal Design */
+        .portal-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2rem;
+            transition: all 0.5s var(--anime-bounce);
+            perspective: 1000px;
+        }
+        .portal-card:hover {
+            border-color: rgba(6, 182, 212, 0.5);
+            box-shadow: 0 0 40px rgba(6, 182, 212, 0.15);
+            transform: translateY(-8px) scale(1.02);
+        }
+        
+        .anime-button {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-violet));
+            transition: all 0.4s var(--anime-bounce);
+            position: relative;
+            overflow: hidden;
+        }
+        .anime-button::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            transform: scale(0);
+            transition: transform 0.6s ease-out;
+        }
+        .anime-button:active::after {
+            transform: scale(1);
+        }
+        
+        .glass-nav {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-cyan); }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0"
+  }
+}
+</script>
+</head>
+<body>
+    <div class="nexus-bg" id="nexus-bg">
+        <div class="aurora"></div>
+        <!-- Digital petals injected by JS -->
+    </div>
+    <div id="root"></div>
+    <script>
+        const bg = document.getElementById('nexus-bg');
+        for(let i=0; i<25; i++) {
+            const petal = document.createElement('div');
+            petal.className = 'digital-petal';
+            petal.style.left = Math.random() * 100 + '%';
+            petal.style.setProperty('--duration', (Math.random() * 5 + 5) + 's');
+            petal.style.animationDelay = (Math.random() * 10) + 's';
+            petal.style.opacity = Math.random() * 0.4;
+            bg.appendChild(petal);
+        }
+    </script>
+</body>
+</html>

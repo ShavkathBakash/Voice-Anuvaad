@@ -1,0 +1,7 @@
+{
+  "name": "Voice Anuvaad",
+  "description": "An attractive, anime-styled universal translator powered by Gemini. Experience high-energy visuals and seamless voice/text translation.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
