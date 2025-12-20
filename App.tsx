@@ -16,7 +16,6 @@ const App: React.FC = () => {
   const [history, setHistory] = useState<TranslationRecord[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
 
-  // Load history from local storage on mount
   useEffect(() => {
     const saved = localStorage.getItem('voice_anuvaad_history');
     if (saved) {
@@ -28,7 +27,6 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Save history to local storage whenever it changes
   useEffect(() => {
     localStorage.setItem('voice_anuvaad_history', JSON.stringify(history));
   }, [history]);
@@ -38,6 +36,7 @@ const App: React.FC = () => {
     
     setIsTranslating(true);
     try {
+      // Pass the most current state variables directly
       const result = await translateText(sourceText, sourceLang, targetLang);
       setTranslatedText(result);
 
@@ -69,24 +68,15 @@ const App: React.FC = () => {
 
   const isCurrentSaved = history.find(h => h.id === currentId)?.isSaved;
 
-  const downloadTranslation = () => {
-    if (!translatedText) return;
-    const content = `Source (${sourceLang}): ${sourceText}\nTranslation (${targetLang}): ${translatedText}`;
-    const element = document.createElement("a");
-    const file = new Blob([content], {type: 'text/plain'});
-    element.href = URL.createObjectURL(file);
-    element.download = `voice_anuvaad_${Date.now()}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
-
   const swapLanguages = () => {
     setSourceLang(targetLang);
     setTargetLang(sourceLang);
-    const temp = sourceText;
-    setSourceText(translatedText);
-    setTranslatedText(temp);
+    const tempSource = sourceText;
+    const tempTarget = translatedText;
+    setSourceText(tempTarget || "");
+    setTranslatedText(tempSource || "");
+    // Trigger re-translation automatically if we swapped
+    if (tempTarget) handleTranslate();
   };
 
   const handleSelectHistory = (record: TranslationRecord) => {
@@ -101,91 +91,85 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-20 relative z-10 selection:bg-cyan-500/30">
-      {/* Dynamic Header */}
-      <header className="glass-nav sticky top-0 z-50 px-8 py-5 flex items-center justify-between border-b border-white/10">
-        <div className="flex items-center gap-5">
-          <div className="w-14 h-14 bg-gradient-to-tr from-cyan-500 to-violet-600 rounded-2xl flex items-center justify-center text-white shadow-[0_0_30px_rgba(6,182,212,0.4)] transition-transform hover:rotate-12 cursor-pointer">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <header className="glass-nav sticky top-0 z-50 px-4 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between border-b border-white/10 gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-to-tr from-cyan-500 to-violet-600 rounded-xl flex items-center justify-center text-white shadow-[0_0_30px_rgba(6,182,212,0.4)] transition-transform hover:rotate-12 cursor-pointer">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
             </svg>
           </div>
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tighter">
+            <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter">
               VOICE <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-400">ANUVAAD</span>
             </h1>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></div>
-              <span className="text-[10px] font-bold text-cyan-400/80 uppercase tracking-[0.3em]">Neural Translation Engine</span>
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></div>
+              <span className="text-[8px] md:text-[9px] font-bold text-cyan-400/80 uppercase tracking-[0.2em]">Universal AI Relay</span>
             </div>
           </div>
         </div>
         
-        <nav className="flex bg-white/5 p-1 rounded-2xl border border-white/10">
+        <nav className="flex bg-white/5 p-1 rounded-2xl border border-white/10 w-full md:w-auto overflow-x-auto no-scrollbar">
           {[
-            { id: TranslatorMode.TEXT, label: 'TEXT' },
-            { id: TranslatorMode.VOICE, label: 'LIVE' },
-            { id: TranslatorMode.SAVED, label: 'SAVED' }
+            { id: TranslatorMode.TEXT, label: '⌨️ TEXT', icon: <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /> },
+            { id: TranslatorMode.VOICE, label: '🎙️ VOICE', icon: <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z M19 10v2a7 7 0 01-14 0v-2 M12 18v4 M8 22h8" /> },
+            { id: TranslatorMode.SAVED, label: '⭐ SAVED', icon: <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.921-.755 1.688-1.54 1.118l-3.976-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.784.57-1.838-.197-1.539-1.118l1.518-4.674a1 1 0 00-.364-1.118L2.05 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /> }
           ].map((tab) => (
             <button 
               key={tab.id}
               onClick={() => setMode(tab.id as TranslatorMode)}
-              className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all ${mode === tab.id ? 'bg-white text-black shadow-lg shadow-white/10' : 'text-slate-400 hover:text-white'}`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${mode === tab.id ? 'bg-white text-black shadow-lg' : 'text-slate-400 hover:text-white'}`}
             >
-              {tab.label}
+              <span className="text-sm">{tab.label.split(' ')[0]}</span>
+              <span>{tab.label.split(' ')[1]}</span>
             </button>
           ))}
         </nav>
       </header>
 
-      <main className="max-w-5xl mx-auto pt-12 px-8">
+      <main className="max-w-5xl mx-auto pt-8 md:pt-12 px-4 md:px-8">
         {mode !== TranslatorMode.SAVED && (
           <>
-            <div className="grid grid-cols-[1fr,auto,1fr] items-end gap-8 mb-12">
-              <div className="portal-card p-4">
-                <LanguageSelector 
-                  label="Source Origin" 
-                  value={sourceLang} 
-                  onChange={setSourceLang} 
-                  className="!text-white"
-                />
+            <div className="grid grid-cols-[1fr,auto,1fr] items-end gap-3 md:gap-8 mb-8 md:mb-12">
+              <div className="portal-card p-2 md:p-4">
+                <LanguageSelector label="🏁 FROM (Input)" value={sourceLang} onChange={setSourceLang} />
               </div>
               
               <button 
                 onClick={swapLanguages}
-                className="mb-2 p-4 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all transform hover:rotate-180 duration-700 shadow-lg shadow-cyan-500/20"
+                className="mb-1 md:mb-2 p-3 md:p-4 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all transform hover:rotate-180 duration-700 flex flex-col items-center justify-center"
+                title="Swap Languages"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="text-xs mb-1">🔁</span>
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
               </button>
 
-              <div className="portal-card p-4">
-                <LanguageSelector 
-                  label="Target Destination" 
-                  value={targetLang} 
-                  onChange={setTargetLang} 
-                  className="!text-white"
-                />
+              <div className="portal-card p-2 md:p-4">
+                <LanguageSelector label="🚩 TO (Output)" value={targetLang} onChange={setTargetLang} />
               </div>
             </div>
 
             {mode === TranslatorMode.TEXT ? (
               <div className="space-y-10 animate-in fade-in zoom-in-95 duration-700">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                   <div className="portal-card group overflow-hidden">
-                    <div className="p-8">
+                    <div className="p-6 md:p-8">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-xl">⌨️</span>
+                        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">ENTER TEXT HERE</span>
+                      </div>
                       <textarea
                         value={sourceText}
                         onChange={(e) => setSourceText(e.target.value)}
-                        placeholder="Enter message to transmit..."
-                        className="w-full h-64 bg-transparent outline-none text-2xl text-white placeholder-white/20 resize-none font-medium leading-tight custom-scrollbar"
+                        placeholder="Type or paste text..."
+                        className="w-full h-48 md:h-64 bg-transparent outline-none text-xl md:text-2xl text-white placeholder-white/20 resize-none font-medium leading-tight custom-scrollbar"
                       />
                       <div className="flex justify-end mt-4">
                         {sourceText && (
-                          <button onClick={() => setSourceText('')} className="text-white/30 hover:text-red-400 transition-colors">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
+                          <button onClick={() => setSourceText('')} className="flex items-center gap-2 text-white/30 hover:text-red-400 transition-colors text-xs font-bold uppercase tracking-widest">
+                            <span>🗑️ CLEAR</span>
                           </button>
                         )}
                       </div>
@@ -193,52 +177,33 @@ const App: React.FC = () => {
                   </div>
 
                   <div className="portal-card relative group overflow-hidden border-cyan-500/20 bg-cyan-500/[0.02]">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full -mr-32 -mt-32 blur-[100px]"></div>
-                    <div className="p-8 h-full flex flex-col">
-                      <span className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.4em] mb-6">Translation Stream</span>
+                    <div className="p-6 md:p-8 h-full flex flex-col">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-xl">⚡</span>
+                        <span className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.4em]">TRANSLATION</span>
+                      </div>
                       {isTranslating ? (
                         <div className="flex-1 flex flex-col items-center justify-center gap-6">
                           <div className="relative">
-                            <div className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
-                            <div className="absolute inset-0 w-16 h-16 border-4 border-violet-500/20 border-b-violet-500 rounded-full animate-spin [animation-duration:1.5s]"></div>
+                            <div className="w-12 h-12 md:w-16 md:h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
                           </div>
-                          <span className="text-xs font-bold text-cyan-400/60 uppercase tracking-widest animate-pulse">Syncing Neural Paths...</span>
+                          <span className="text-[10px] font-black text-cyan-400 animate-pulse uppercase tracking-[0.5em]">THINKING...</span>
                         </div>
                       ) : (
                         <div className="flex-1 overflow-y-auto custom-scrollbar">
-                          <p className={`text-2xl leading-tight ${translatedText ? 'text-white font-bold' : 'text-white/20 italic'}`}>
-                            {translatedText || "Awaiting signal input..."}
+                          <p className={`text-xl md:text-2xl leading-tight ${translatedText ? 'text-white font-bold' : 'text-white/20 italic'}`}>
+                            {translatedText || "AI will show result here..."}
                           </p>
                         </div>
                       )}
                       {translatedText && !isTranslating && (
-                        <div className="flex justify-end mt-4 gap-3">
+                        <div className="flex justify-end mt-4 gap-2 md:gap-3">
                           <button 
                             onClick={() => currentId && toggleSave(currentId)}
-                            className={`p-3 rounded-xl transition-all anime-pop ${isCurrentSaved ? 'bg-yellow-400/20 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.3)]' : 'bg-white/5 text-white/60 hover:text-cyan-400'}`}
-                            title={isCurrentSaved ? "Saved" : "Save Transmission"}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${isCurrentSaved ? 'bg-yellow-400/20 text-yellow-400' : 'bg-white/5 text-white/60 hover:text-cyan-400'}`}
                           >
-                            <svg className="w-5 h-5" fill={isCurrentSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.921-.755 1.688-1.54 1.118l-3.976-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.784.57-1.838-.197-1.539-1.118l1.518-4.674a1 1 0 00-.364-1.118L2.05 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                            </svg>
-                          </button>
-                          <button 
-                            onClick={downloadTranslation}
-                            className="p-3 bg-white/5 rounded-xl text-white/60 hover:text-cyan-400 hover:bg-white/10 transition-all anime-pop"
-                            title="Download as .txt"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                          </button>
-                          <button 
-                            onClick={() => navigator.clipboard.writeText(translatedText)}
-                            className="p-3 bg-white/5 rounded-xl text-white/60 hover:text-cyan-400 hover:bg-white/10 transition-all anime-pop"
-                            title="Copy to clipboard"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                            </svg>
+                            <span>{isCurrentSaved ? '⭐' : '☆'}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">{isCurrentSaved ? 'SAVED' : 'SAVE'}</span>
                           </button>
                         </div>
                       )}
@@ -250,12 +215,9 @@ const App: React.FC = () => {
                   <button
                     onClick={handleTranslate}
                     disabled={isTranslating || !sourceText.trim()}
-                    className="anime-button px-20 py-6 rounded-[2rem] text-white font-black text-xl uppercase tracking-widest shadow-[0_20px_50px_rgba(6,182,212,0.3)] disabled:opacity-30 flex items-center gap-4 group hover:scale-105 active:scale-95"
+                    className="anime-button flex items-center gap-4 px-12 md:px-20 py-4 md:py-6 rounded-[2rem] text-white font-black text-lg md:text-xl uppercase tracking-widest disabled:opacity-30 active:scale-95"
                   >
-                    Execute Translation
-                    <svg className="w-6 h-6 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
+                    <span>✨ TRANSLATE NOW ✨</span>
                   </button>
                 </div>
               </div>
@@ -267,31 +229,16 @@ const App: React.FC = () => {
           </>
         )}
 
-        <div className="mt-16">
-          {mode === TranslatorMode.SAVED ? (
-            <HistoryList 
-              history={history.filter(h => h.isSaved)} 
-              title="Saved Transmissions"
-              onClear={() => setHistory(prev => prev.map(h => ({...h, isSaved: false})))} 
-              onSelect={handleSelectHistory} 
-              onToggleSave={toggleSave}
-            />
-          ) : (
-            <HistoryList 
-              history={history} 
-              title="Archive Log"
-              onClear={() => setHistory([])} 
-              onSelect={handleSelectHistory} 
-              onToggleSave={toggleSave}
-            />
-          )}
+        <div className="mt-8 md:mt-16">
+          <HistoryList 
+            history={mode === TranslatorMode.SAVED ? history.filter(h => h.isSaved) : history} 
+            title={mode === TranslatorMode.SAVED ? "⭐ SAVED LIST" : "📜 RECENT HISTORY"}
+            onClear={() => mode === TranslatorMode.SAVED ? setHistory(prev => prev.map(h => ({...h, isSaved: false}))) : setHistory([])} 
+            onSelect={handleSelectHistory} 
+            onToggleSave={toggleSave}
+          />
         </div>
       </main>
-
-      <footer className="max-w-5xl mx-auto px-8 py-20 text-center opacity-50">
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent mb-10"></div>
-        <p className="text-xs font-bold tracking-[0.5em] text-white uppercase">Neural Network Interface • Gemini v2.5 • Voice Anuvaad</p>
-      </footer>
     </div>
   );
 };
