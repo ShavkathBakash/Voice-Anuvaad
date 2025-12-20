@@ -6,19 +6,19 @@
   "scope": "/",
   "icons": [
     {
-      "src": "https://img.icons8.com/fluency/512/language.png",
+      "src": "https://img.icons8.com/nolan/512/voice-recognition.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "https://img.icons8.com/fluency/512/language.png",
+      "src": "https://img.icons8.com/nolan/512/voice-recognition.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
     },
     {
-      "src": "https://img.icons8.com/fluency/512/language.png",
+      "src": "https://img.icons8.com/nolan/512/voice-recognition.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
