@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'anuvaad-v4-nexus';
+const CACHE_NAME = 'anuvaad-v5-nexus';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
