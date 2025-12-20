@@ -1,12 +1,11 @@
 
-const CACHE_NAME = 'anuvaad-v2-dynamic';
+const CACHE_NAME = 'anuvaad-v3-nexus';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json'
 ];
 
-// Install Event: Pre-cache core assets
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
@@ -16,7 +15,6 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate Event: Clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -31,24 +29,17 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event: Network-First Strategy
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
   if (event.request.method !== 'GET') return;
-
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // If successful, clone and store in cache
         const resClone = response.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, resClone);
         });
         return response;
       })
-      .catch(() => {
-        // If network fails, return from cache
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(event.request))
   );
 });

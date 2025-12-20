@@ -4,8 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Voice Anuvaad | 3D Cyber-Flow</title>
+    <title>Voice Anuvaad | Universal AI</title>
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/512/language.png">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/512/language.png">
     <meta name="theme-color" content="#050510">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -64,12 +66,11 @@
             padding-top: env(safe-area-inset-top);
         }
 
-        /* Scanline Overlay for retro-future vibe */
         .scanlines {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.08) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.01));
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.01));
             background-size: 100% 3px, 3px 100%;
             pointer-events: none;
             z-index: 100;
@@ -115,48 +116,30 @@
                 this.y = (Math.random() - 0.5) * height * 2;
                 this.z = Math.random() * width;
                 this.pz = this.z;
-                
-                // Spiral velocity
                 this.angle = Math.atan2(this.y, this.x);
                 this.velocity = isMobile ? 2 : 4;
-                this.color = `hsla(${hue + Math.random() * 40}, 80%, 60%, 1)`;
             }
 
             update() {
                 this.pz = this.z;
                 this.z -= this.velocity;
-
                 if (this.z < 1) {
                     this.z = width;
                     this.pz = this.z;
-                }
-
-                // Interaction with mouse/touch
-                if (mouse.active) {
-                    const dx = (this.x / this.z) * (width/2) + width/2 - mouse.x;
-                    const dy = (this.y / this.z) * (width/2) + height/2 - mouse.y;
-                    const dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < 200) {
-                        this.z += 5; // Push away effect
-                    }
                 }
             }
 
             draw() {
                 const fov = width * 0.8;
-                
                 const sx = (this.x / this.z) * fov + width / 2;
                 const sy = (this.y / this.z) * fov + height / 2;
-
                 const px = (this.x / this.pz) * fov + width / 2;
                 const py = (this.y / this.pz) * fov + height / 2;
-
                 const opacity = Math.min(1, 1 - this.z / width);
                 
                 ctx.beginPath();
                 ctx.strokeStyle = `hsla(${hue + (this.z/width)*50}, 100%, 70%, ${opacity})`;
                 ctx.lineWidth = (1 - this.z / width) * (isMobile ? 2 : 4);
-                ctx.lineCap = 'round';
                 ctx.moveTo(px, py);
                 ctx.lineTo(sx, sy);
                 ctx.stroke();
@@ -168,55 +151,25 @@
             height = canvas.height = window.innerHeight;
             particles = [];
             const count = isMobile ? 80 : 250;
-            for (let i = 0; i < count; i++) {
-                particles.push(new Particle());
-            }
+            for (let i = 0; i < count; i++) particles.push(new Particle());
         }
 
         function render() {
-            // Semi-transparent clear for motion trails
             ctx.fillStyle = 'rgba(2, 2, 10, 0.15)';
             ctx.fillRect(0, 0, width, height);
-
             hue += 0.2;
-            if (hue > 360) hue = 0;
-
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-
+            particles.forEach(p => { p.update(); p.draw(); });
             requestAnimationFrame(render);
         }
 
         window.addEventListener('resize', resize);
-        
-        const updateMouse = (e) => {
-            mouse.x = e.touches ? e.touches[0].clientX : e.clientX;
-            mouse.y = e.touches ? e.touches[0].clientY : e.clientY;
-            mouse.active = true;
-        };
-
-        window.addEventListener('mousemove', updateMouse);
-        window.addEventListener('touchstart', updateMouse);
-        window.addEventListener('touchmove', updateMouse);
-        window.addEventListener('touchend', () => mouse.active = false);
-
         resize();
         render();
 
-        // Optimized Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').then(reg => {
-                    reg.onupdatefound = () => {
-                        const installingWorker = reg.installing;
-                        installingWorker.onstatechange = () => {
-                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                window.location.reload();
-                            }
-                        };
-                    };
+                    console.log('SW registered');
                 }).catch(err => console.error('PWA fail:', err));
             });
         }

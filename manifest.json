@@ -1,21 +1,27 @@
 
 {
   "short_name": "Anuvaad",
-  "name": "Voice Anuvaad: Universal Translator",
+  "name": "Voice Anuvaad: Universal AI",
   "id": "/",
   "scope": "/",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2881/2881031.png",
+      "src": "https://img.icons8.com/fluency/512/language.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2881/2881031.png",
+      "src": "https://img.icons8.com/fluency/512/language.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
+    },
+    {
+      "src": "https://img.icons8.com/fluency/512/language.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
   "start_url": "/?source=pwa",

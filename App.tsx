@@ -78,9 +78,7 @@ const App: React.FC = () => {
     setSourceText(oldTargetText || "");
     setTranslatedText(oldSourceText || "");
 
-    // If there was text to translate, re-run translation with new settings
     if (oldTargetText) {
-      // Small timeout to let state update settle
       setTimeout(() => {
         setIsTranslating(true);
         translateText(oldTargetText, oldTargetLang, oldSourceLang).then(res => {
@@ -104,11 +102,18 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen pb-20 relative z-10 selection:bg-cyan-500/30">
       <header className="glass-nav sticky top-0 z-50 px-4 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between border-b border-white/10 gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-tr from-cyan-500 to-violet-600 rounded-xl flex items-center justify-center text-white shadow-[0_0_30px_rgba(6,182,212,0.4)] transition-transform hover:rotate-12 cursor-pointer">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-            </svg>
+        <div className="flex items-center gap-4 group cursor-pointer">
+          <div className="relative w-14 h-14 flex items-center justify-center">
+            {/* Animated Logo Background Rings */}
+            <div className="absolute inset-0 bg-cyan-500/20 rounded-full animate-ping duration-[3000ms]"></div>
+            <div className="absolute inset-2 border-2 border-dashed border-violet-500/40 rounded-full animate-spin duration-[10000ms]"></div>
+            
+            {/* The Main "Nexus" Logo */}
+            <div className="relative w-11 h-11 bg-gradient-to-tr from-cyan-400 via-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center text-white shadow-[0_0_25px_rgba(6,182,212,0.6)] group-hover:scale-110 transition-transform duration-500">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter">
@@ -116,16 +121,16 @@ const App: React.FC = () => {
             </h1>
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></div>
-              <span className="text-[8px] md:text-[9px] font-bold text-cyan-400/80 uppercase tracking-[0.2em]">Universal AI Relay</span>
+              <span className="text-[8px] md:text-[9px] font-bold text-cyan-400/80 uppercase tracking-[0.2em]">Universal AI Nexus</span>
             </div>
           </div>
         </div>
         
         <nav className="flex bg-white/5 p-1 rounded-2xl border border-white/10 w-full md:w-auto overflow-x-auto no-scrollbar">
           {[
-            { id: TranslatorMode.TEXT, label: '⌨️ TEXT', icon: <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /> },
-            { id: TranslatorMode.VOICE, label: '🎙️ VOICE', icon: <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z M19 10v2a7 7 0 01-14 0v-2 M12 18v4 M8 22h8" /> },
-            { id: TranslatorMode.SAVED, label: '⭐ SAVED', icon: <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.921-.755 1.688-1.54 1.118l-3.976-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.784.57-1.838-.197-1.539-1.118l1.518-4.674a1 1 0 00-.364-1.118L2.05 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /> }
+            { id: TranslatorMode.TEXT, label: '⌨️ TEXT' },
+            { id: TranslatorMode.VOICE, label: '🎙️ VOICE' },
+            { id: TranslatorMode.SAVED, label: '⭐ SAVED' }
           ].map((tab) => (
             <button 
               key={tab.id}
