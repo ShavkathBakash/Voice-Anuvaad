@@ -143,7 +143,7 @@ const App: React.FC = () => {
           <>
             <div className="grid grid-cols-[1fr,auto,1fr] items-end gap-3 md:gap-8 mb-8 md:mb-12">
               <div className="portal-card p-2 md:p-4">
-                <LanguageSelector label="🏁 FROM (Input)" value={sourceLang} onChange={setSourceLang} />
+                <LanguageSelector label="🏁 FROM" value={sourceLang} onChange={setSourceLang} />
               </div>
               
               <button 
@@ -158,7 +158,7 @@ const App: React.FC = () => {
               </button>
 
               <div className="portal-card p-2 md:p-4">
-                <LanguageSelector label="🚩 TO (Output)" value={targetLang} onChange={setTargetLang} />
+                <LanguageSelector label="🚩 TO" value={targetLang} onChange={setTargetLang} />
               </div>
             </div>
 
@@ -203,7 +203,7 @@ const App: React.FC = () => {
                       ) : (
                         <div className="flex-1 overflow-y-auto custom-scrollbar">
                           <p className={`text-xl md:text-2xl leading-tight ${translatedText ? 'text-white font-bold' : 'text-white/20 italic'}`}>
-                            {translatedText || "AI will translate here..."}
+                            {translatedText || ""}
                           </p>
                         </div>
                       )}
