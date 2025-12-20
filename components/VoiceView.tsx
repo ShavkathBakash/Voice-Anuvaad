@@ -31,14 +31,20 @@ const VoiceView: React.FC<VoiceViewProps> = ({ sourceLang, targetLang }) => {
   const getLanguageName = (code: string) => 
     SUPPORTED_LANGUAGES.find(l => l.code === code)?.name || code;
 
-  // Cleanup function to stop current session
   const stopSession = useCallback(() => {
-    sessionRef.current?.close();
-    streamRef.current?.getTracks().forEach(t => t.stop());
+    if (sessionRef.current) {
+      sessionRef.current.close();
+      sessionRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
     setStatus('IDLE');
     setInputLevel(0);
-    // Stop all audio playback sources
-    sourcesRef.current.forEach(s => s.stop());
+    sourcesRef.current.forEach(s => {
+      try { s.stop(); } catch(e) {}
+    });
     sourcesRef.current.clear();
   }, []);
 
@@ -131,7 +137,7 @@ const VoiceView: React.FC<VoiceViewProps> = ({ sourceLang, targetLang }) => {
           responseModalities: [Modality.AUDIO],
           outputAudioTranscription: {},
           speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } } },
-          systemInstruction: `You are a translator from ${sourceName} to ${targetName}. Listen for voices nearby. Ignore background noises. Speak only the translation.`,
+          systemInstruction: `You are an immediate voice translator from ${sourceName} to ${targetName}. Listen to the user and speak the translation in ${targetName} instantly. Do not add any filler words.`,
         }
       });
       sessionRef.current = await sessionPromise;
@@ -141,21 +147,21 @@ const VoiceView: React.FC<VoiceViewProps> = ({ sourceLang, targetLang }) => {
     }
   }, [sourceLang, targetLang, stopSession]);
 
-  // CRITICAL FIX: Restart session automatically when languages change while active
   useEffect(() => {
     if (status !== 'IDLE') {
       stopSession();
-      // Delay slightly to allow resources to release before re-acquiring
-      const timeout = setTimeout(() => {
+      const delayStart = setTimeout(() => {
         startSession();
-      }, 300);
-      return () => clearTimeout(timeout);
+      }, 500);
+      return () => clearTimeout(delayStart);
     }
-  }, [sourceLang, targetLang]); // Watch for language changes
+  }, [sourceLang, targetLang]);
 
   const replayTranslation = async () => {
     if (lastAudioChunksRef.current.length === 0 || !outputAudioContextRef.current) return;
-    sourcesRef.current.forEach(s => s.stop());
+    sourcesRef.current.forEach(s => {
+      try { s.stop(); } catch(e) {}
+    });
     sourcesRef.current.clear();
     const ctx = outputAudioContextRef.current;
     let offset = ctx.currentTime + 0.1;
@@ -177,9 +183,9 @@ const VoiceView: React.FC<VoiceViewProps> = ({ sourceLang, targetLang }) => {
 
   const getStatusDisplay = () => {
     switch(status) {
-      case 'LISTENING': return { label: '🔴 RECORDING', color: 'bg-red-500' };
-      case 'TRANSLATING': return { label: '⚡ TRANSLATING', color: 'bg-cyan-400' };
-      default: return { label: '⚪ READY / IDLE', color: 'bg-white/20' };
+      case 'LISTENING': return { label: 'RECORDING', color: 'bg-red-500' };
+      case 'TRANSLATING': return { label: 'TRANSLATING', color: 'bg-cyan-400' };
+      default: return { label: 'START RECORDING', color: 'bg-white' };
     }
   };
 
@@ -189,7 +195,7 @@ const VoiceView: React.FC<VoiceViewProps> = ({ sourceLang, targetLang }) => {
     <div className="flex flex-col items-center justify-center py-12 md:py-20 px-4 md:px-8 space-y-10">
       <div className="flex items-center gap-3 px-6 py-2.5 rounded-full bg-white/5 border border-white/10 shadow-lg">
         <div className={`w-3 h-3 rounded-full ${status === 'LISTENING' ? 'animate-pulse' : status === 'TRANSLATING' ? 'animate-spin' : ''} ${statusInfo.color}`} />
-        <span className="text-[11px] font-black tracking-[0.2em] uppercase text-white flex items-center gap-2">
+        <span className="text-[11px] font-black tracking-[0.2em] uppercase text-white">
            {statusInfo.label}
         </span>
       </div>
@@ -202,14 +208,14 @@ const VoiceView: React.FC<VoiceViewProps> = ({ sourceLang, targetLang }) => {
         
         <button
           onClick={status === 'IDLE' ? startSession : stopSession}
-          className={`relative z-10 w-44 h-44 md:w-60 md:h-60 rounded-full flex flex-col items-center justify-center text-white transition-all active:scale-95 shadow-2xl
+          className={`relative z-10 w-48 h-48 md:w-64 md:h-64 rounded-full flex flex-col items-center justify-center text-white transition-all active:scale-95 shadow-2xl
             ${status === 'IDLE' ? 'bg-gradient-to-br from-cyan-500 to-violet-600' : 'bg-red-500'}`}
         >
-          <div className="text-6xl md:text-8xl mb-4">
+          <div className="text-7xl md:text-8xl mb-4">
             {status === 'IDLE' ? '🎙️' : '⏹️'}
           </div>
-          <span className="text-[12px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
-            {status === 'IDLE' ? '▶️ START VOICE' : '⏹️ STOP VOICE'}
+          <span className="text-[14px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
+            {status === 'IDLE' ? '▶️ START' : '⏹️ STOP'}
           </span>
           {status === 'LISTENING' && (
              <div className="mt-2 text-[10px] font-bold text-white/60 animate-bounce tracking-widest">
@@ -234,7 +240,7 @@ const VoiceView: React.FC<VoiceViewProps> = ({ sourceLang, targetLang }) => {
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-2">
                 <span className="text-xl">📢</span>
-                <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">TRANSLATED SPEECH</span>
+                <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">TRANSLATION</span>
               </div>
               
               <div className="flex items-center gap-3 w-full md:w-auto">

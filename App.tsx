@@ -36,7 +36,6 @@ const App: React.FC = () => {
     
     setIsTranslating(true);
     try {
-      // Pass the most current state variables directly
       const result = await translateText(sourceText, sourceLang, targetLang);
       setTranslatedText(result);
 
@@ -69,14 +68,27 @@ const App: React.FC = () => {
   const isCurrentSaved = history.find(h => h.id === currentId)?.isSaved;
 
   const swapLanguages = () => {
-    setSourceLang(targetLang);
-    setTargetLang(sourceLang);
-    const tempSource = sourceText;
-    const tempTarget = translatedText;
-    setSourceText(tempTarget || "");
-    setTranslatedText(tempSource || "");
-    // Trigger re-translation automatically if we swapped
-    if (tempTarget) handleTranslate();
+    const oldSourceLang = sourceLang;
+    const oldTargetLang = targetLang;
+    const oldSourceText = sourceText;
+    const oldTargetText = translatedText;
+
+    setSourceLang(oldTargetLang);
+    setTargetLang(oldSourceLang);
+    setSourceText(oldTargetText || "");
+    setTranslatedText(oldSourceText || "");
+
+    // If there was text to translate, re-run translation with new settings
+    if (oldTargetText) {
+      // Small timeout to let state update settle
+      setTimeout(() => {
+        setIsTranslating(true);
+        translateText(oldTargetText, oldTargetLang, oldSourceLang).then(res => {
+          setTranslatedText(res);
+          setIsTranslating(false);
+        });
+      }, 50);
+    }
   };
 
   const handleSelectHistory = (record: TranslationRecord) => {
@@ -120,8 +132,7 @@ const App: React.FC = () => {
               onClick={() => setMode(tab.id as TranslatorMode)}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${mode === tab.id ? 'bg-white text-black shadow-lg' : 'text-slate-400 hover:text-white'}`}
             >
-              <span className="text-sm">{tab.label.split(' ')[0]}</span>
-              <span>{tab.label.split(' ')[1]}</span>
+              <span className="whitespace-nowrap">{tab.label}</span>
             </button>
           ))}
         </nav>
@@ -140,7 +151,7 @@ const App: React.FC = () => {
                 className="mb-1 md:mb-2 p-3 md:p-4 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all transform hover:rotate-180 duration-700 flex flex-col items-center justify-center"
                 title="Swap Languages"
               >
-                <span className="text-xs mb-1">🔁</span>
+                <span className="text-xl mb-1">🔁</span>
                 <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
@@ -158,12 +169,12 @@ const App: React.FC = () => {
                     <div className="p-6 md:p-8">
                       <div className="flex items-center gap-2 mb-4">
                         <span className="text-xl">⌨️</span>
-                        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">ENTER TEXT HERE</span>
+                        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">ENTER TEXT</span>
                       </div>
                       <textarea
                         value={sourceText}
                         onChange={(e) => setSourceText(e.target.value)}
-                        placeholder="Type or paste text..."
+                        placeholder="Type here..."
                         className="w-full h-48 md:h-64 bg-transparent outline-none text-xl md:text-2xl text-white placeholder-white/20 resize-none font-medium leading-tight custom-scrollbar"
                       />
                       <div className="flex justify-end mt-4">
@@ -179,8 +190,8 @@ const App: React.FC = () => {
                   <div className="portal-card relative group overflow-hidden border-cyan-500/20 bg-cyan-500/[0.02]">
                     <div className="p-6 md:p-8 h-full flex flex-col">
                       <div className="flex items-center gap-2 mb-4">
-                        <span className="text-xl">⚡</span>
-                        <span className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.4em]">TRANSLATION</span>
+                        <span className="text-xl">✨</span>
+                        <span className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.4em]">RESULT</span>
                       </div>
                       {isTranslating ? (
                         <div className="flex-1 flex flex-col items-center justify-center gap-6">
@@ -192,7 +203,7 @@ const App: React.FC = () => {
                       ) : (
                         <div className="flex-1 overflow-y-auto custom-scrollbar">
                           <p className={`text-xl md:text-2xl leading-tight ${translatedText ? 'text-white font-bold' : 'text-white/20 italic'}`}>
-                            {translatedText || "AI will show result here..."}
+                            {translatedText || "AI will translate here..."}
                           </p>
                         </div>
                       )}
@@ -232,7 +243,7 @@ const App: React.FC = () => {
         <div className="mt-8 md:mt-16">
           <HistoryList 
             history={mode === TranslatorMode.SAVED ? history.filter(h => h.isSaved) : history} 
-            title={mode === TranslatorMode.SAVED ? "⭐ SAVED LIST" : "📜 RECENT HISTORY"}
+            title={mode === TranslatorMode.SAVED ? "⭐ SAVED LIST" : "📜 HISTORY"}
             onClear={() => mode === TranslatorMode.SAVED ? setHistory(prev => prev.map(h => ({...h, isSaved: false}))) : setHistory([])} 
             onSelect={handleSelectHistory} 
             onToggleSave={toggleSave}
